@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Sarcini</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hidden { display: none !important; }
+        .sarcina-item { transition: all 0.2s ease; }
+        .sarcina-item:hover { background-color: #f8f9fa; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div id="zona-auth" class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h3 class="card-title text-center mb-4" id="auth-titlu">Conectare</h3>
+                        <form id="form-auth">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="auth-email" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Parolă</label>
+                                <input type="password" id="auth-parola" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="btn-auth-submit">Intră în cont</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="#" id="link-schimba-auth">Nu ai cont? Înregistrează-te</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="zona-aplicatie" class="row hidden">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Utilizator curent</h5>
+                            <button id="btn-logout" class="btn btn-sm btn-outline-danger">Ieși</button>
+                        </div>
+                        <p id="user-email" class="text-muted small"></p>
+                    </div>
+                </div>
+                
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Creează o sarcină</h5>
+                        <form id="form-sarcina">
+                            <div class="mb-3">
+                                <label class="form-label">Titlu</label>
+                                <input type="text" id="sarcina-titlu" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Descriere</label>
+                                <textarea id="sarcina-descriere" class="form-control" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Adaugă</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Sarcinile mele</h5>
+                        <div id="lista-sarcini" class="list-group list-group-flush">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL-ul este relativ acum conform cerințelor Lab 5!
+        const API = ""; 
+        let esteInregistrare = false;
+
+        document.getElementById('link-schimba-auth').addEventListener('click', (e) => {
+            e.preventDefault();
+            esteInregistrare = !esteInregistrare;
+            document.getElementById('auth-titlu').innerText = esteInregistrare ? 'Înregistrare' : 'Conectare';
+            document.getElementById('btn-auth-submit').innerText = esteInregistrare ? 'Creează cont' : 'Intră în cont';
+            document.getElementById('link-schimba-auth').innerText = esteInregistrare ? 'Ai deja cont? Conectează-te' : 'Nu ai cont? Înregistrează-te';
+        });
+
+        document.getElementById('form-auth').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const parola = document.getElementById('auth-parola').value;
+
+            if (esteInregistrare) {
+                const raspuns = await fetch(`${API}/inregistrare`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, parola })
+                });
+                const date = await raspuns.json();
+                if (raspuns.ok) {
+                    alert('Cont creat cu succes! Te poți conecta.');
+                    document.getElementById('link-schimba-auth').click();
+                } else {
+                    alert(date.detail || 'Eroare la înregistrare');
+                }
+            } else {
+                const corpFormular = new URLSearchParams();
+                corpFormular.append('username', email);
+                corpFormular.append('password', parola);
+
+                const raspuns = await fetch(`${API}/autentificare`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: corpFormular
+                });
+                const date = await raspuns.json();
+                if (raspuns.ok) {
+                    localStorage.setItem('token', date.access_token);
+                    localStorage.setItem('email', email);
+                    afiseazaAplicatie();
+                } else {
+                    alert(date.detail || 'Date incorecte');
+                }
+            }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            localStorage.clear();
+            document.getElementById('zona-aplicatie').classList.add('hidden');
+            document.getElementById('zona-auth').classList.remove('hidden');
+            document.getElementById('form-auth').reset();
+        });
+
+        function afiseazaAplicatie() {
+            document.getElementById('zona-auth').classList.add('hidden');
+            document.getElementById('zona-aplicatie').classList.remove('hidden');
+            document.getElementById('user-email').innerText = localStorage.getItem('email');
+            incarcaSarcini();
+        }
+
+        async function incarcaSarcini() {
+            const token = localStorage.getItem('token');
+            const raspuns = await fetch(`${API}/sarcini`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (raspuns.ok) {
+                const sarcini = await raspuns.json();
+                const container = document.getElementById('lista-sarcini');
+                container.innerHTML = '';
+                
+                if (sarcini.length === 0) {
+                    container.innerHTML = '<p class="text-center text-muted p-3">Nu ai nicio sarcină salvată.</p>';
+                    return;
+                }
+
+                sarcini.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = 'list-group-item d-flex justify-content-between align-items-center sarcina-item p-3';
+                    item.innerHTML = `
+                        <div>
+                            <h6 class="${s.finalizata ? 'text-decoration-line-through text-muted' : ''} mb-1">${s.titlu}</h6>
+                            <small class="text-muted">${s.descriere || ''}</small>
+                        </div>
+                        <div>
+                            ${!s.finalizata ? `<button class="btn btn-sm btn-success me-2" onclick="finalizeazaSarcina(${s.id})">Finalizează</button>` : '<span class="badge bg-success me-2">Gata</span>'}
+                            <button class="btn btn-sm btn-danger" onclick="stergeSarcina(${s.id})">Șterge</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+        }
+
+        document.getElementById('form-sarcina').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titlu = document.getElementById('sarcina-titlu').value;
+            const descriere = document.getElementById('sarcina-descriere').value;
+            const token = localStorage.getItem('token');
+
+            const raspuns = await fetch(`${API}/sarcini`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ titlu, descriere })
+            });
+
+            if (raspuns.ok) {
+                document.getElementById('form-sarcina').reset();
+                incarcaSarcini();
+            }
+        });
+
+        async function finalizeazaSarcina(id) {
+            const token = localStorage.getItem('token');
+            await fetch(`${API}/sarcini/${id}/finaliza`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            incarcaSarcini();
+        }
+
+        async function stergeSarcina(id) {
+            const token = localStorage.getItem('token');
+            await fetch(`${API}/sarcini/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            incarcaSarcini();
+        }
+
+        if (localStorage.getItem('token')) {
+            afiseazaAplicatie();
+        }
+    </script>
+</body>
+</html>
