@@ -9,81 +9,148 @@
         .hidden { display: none !important; }
         .sarcina-item { transition: all 0.2s ease; }
         .sarcina-item:hover { background-color: #f8f9fa; }
+        /* Stil pentru navigare activă */
+        .nav-link { cursor: pointer; }
     </style>
 </head>
 <body class="bg-light">
-    <div class="container mt-5">
-        <div id="zona-auth" class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h3 class="card-title text-center mb-4" id="auth-titlu">Conectare</h3>
-                        <form id="form-auth">
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" id="auth-email" class="form-control" required>
+
+    <nav class="navbar navbar-expand navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <span class="navbar-brand fw-bold">Manager Sarcini</span>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active fw-semibold me-3" id="nav-sarcini" onclick="switchTab('sarcini')">Sarcini</a>
+                <a class="nav-link fw-semibold" id="nav-despre" onclick="switchTab('despre')">About Me</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <div id="tab-sarcini-wrapper">
+            <div id="zona-auth" class="row justify-content-center mt-4">
+                <div class="col-md-5">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h3 class="card-title text-center mb-4" id="auth-titlu">Conectare</h3>
+                            <form id="form-auth">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" id="auth-email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Parolă</label>
+                                    <input type="password" id="auth-parola" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100" id="btn-auth-submit">Intră în cont</button>
+                            </form>
+                            <div class="text-center mt-3">
+                                <a href="#" id="link-schimba-auth" class="text-decoration-none">Nu ai cont? Înregistrează-te</a>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Parolă</label>
-                                <input type="password" id="auth-parola" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="zona-aplicatie" class="row hidden mt-4">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">Utilizator curent</h5>
+                                <button id="btn-logout" class="btn btn-sm btn-outline-danger">Ieși</button>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100" id="btn-auth-submit">Intră în cont</button>
-                        </form>
-                        <div class="text-center mt-3">
-                            <a href="#" id="link-schimba-auth">Nu ai cont? Înregistrează-te</a>
+                            <p id="user-email" class="text-muted small mb-0"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Creează o sarcină</h5>
+                            <form id="form-sarcina">
+                                <div class="mb-3">
+                                    <label class="form-label">Titlu</label>
+                                    <input type="text" id="sarcina-titlu" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Descriere</label>
+                                    <textarea id="sarcina-descriere" class="form-control" rows="3"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Adaugă</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Sarcinile mele</h5>
+                            <div id="lista-sarcini" class="list-group list-group-flush">
+                                </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="zona-aplicatie" class="row hidden">
-            <div class="col-md-4 mb-4">
-                <div class="card shadow mb-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">Utilizator curent</h5>
-                            <button id="btn-logout" class="btn btn-sm btn-outline-danger">Ieși</button>
-                        </div>
-                        <p id="user-email" class="text-muted small"></p>
-                    </div>
-                </div>
-                
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Creează o sarcină</h5>
-                        <form id="form-sarcina">
-                            <div class="mb-3">
-                                <label class="form-label">Titlu</label>
-                                <input type="text" id="sarcina-titlu" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Descriere</label>
-                                <textarea id="sarcina-descriere" class="form-control" rows="3"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-success w-100">Adaugă</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
+        <div id="tab-despre" class="row justify-content-center hidden mt-4">
             <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">Sarcinile mele</h5>
-                        <div id="lista-sarcini" class="list-group list-group-flush">
+                <div class="card shadow border-0 border-start border-primary border-4">
+                    <div class="card-body p-5">
+                        <h2 class="card-title text-primary mb-4fw-bold">About Me</h2>
+                        <hr class="mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-9">
+                                <h4 class="fw-bold text-dark mb-1">Cucolea Iulian</h4>
+                                <p class="text-muted mb-4">Student la Rețele de Comunicații și Calculatoare</p>
+                                
+                                <div class="mb-4 text-secondary" style="line-height: 1.7;">
+                                    Salut! Această pagină reprezintă prezentarea oficială a proiectului meu final pentru <strong>Laboratorul #05</strong>. 
+                                    Aplicația folosește o arhitectură decuplată cu un API robust în <strong>FastAPI (Python)</strong>, stocare de date în <strong>SQLite</strong> 
+                                    și o interfață dinamică asincronă în frontend, totul rulând stabil în cloud.
+                                </div>
+
+                                <div class="row g-3 bg-light p-3 rounded border text-secondary small">
+                                    <div class="col-sm-6"><strong>Facultatea:</strong> Inginerie și Știința Calculatoarelor</div>
+                                    <div class="col-sm-6"><strong>Specializare:</strong> RCC</div>
+                                    <div class="col-sm-6"><strong>Tehnologii cloud:</strong> Render, GitHub CI/CD</div>
+                                    <div class="col-sm-6"><strong>Status Deployment:</strong> Funcțional / Live</div>
+                                </div>
                             </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
-        // URL-ul este relativ acum conform cerințelor Lab 5!
         const API = ""; 
         let esteInregistrare = false;
 
+        // Mecanismul de schimbare a tab-urilor (Sarcini vs About Me)
+        function switchTab(tabName) {
+            const tabSarcini = document.getElementById('tab-sarcini-wrapper');
+            const tabDespre = document.getElementById('tab-despre');
+            const navSarcini = document.getElementById('nav-sarcini');
+            const navDespre = document.getElementById('nav-despre');
+
+            if (tabName === 'sarcini') {
+                tabSarcini.classList.remove('hidden');
+                tabDespre.classList.add('hidden');
+                navSarcini.classList.add('active');
+                navDespre.classList.remove('active');
+            } else if (tabName === 'despre') {
+                tabSarcini.classList.add('hidden');
+                tabDespre.classList.remove('hidden');
+                navSarcini.classList.remove('active');
+                navDespre.classList.add('active');
+            }
+        }
+
+        // Logică Autentificare
         document.getElementById('link-schimba-auth').addEventListener('click', (e) => {
             e.preventDefault();
             esteInregistrare = !esteInregistrare;
