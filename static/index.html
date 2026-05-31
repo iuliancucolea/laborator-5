@@ -159,30 +159,50 @@
             const parola = document.getElementById('auth-parola').value;
 
             if (esteInregistrare) {
-                let raspuns = await fetch(`${API}/inregistrare`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: email, password: parola })
-                });
-
-                if (!raspuns.ok) {
-                    const corpFormular = new URLSearchParams();
-                    corpFormular.append('username', email);
-                    corpFormular.append('password', parola);
-                    
+                let raspuns, date;
+                
+                // STRATEGIA 1: Încercăm JSON cu email și parola (original format)
+                try {
                     raspuns = await fetch(`${API}/inregistrare`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: corpFormular
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, parola: parola })
                     });
+                } catch(err) {}
+
+                // STRATEGIA 2: Dacă dă 422, încercăm JSON cu username și password
+                if (!raspuns || raspuns.status === 422) {
+                    try {
+                        raspuns = await fetch(`${API}/inregistrare`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: email, password: parola })
+                        });
+                    } catch(err) {}
                 }
 
-                const date = await raspuns.json();
-                if (raspuns.ok) {
+                // STRATEGIA 3: Dacă tot dă 422, încercăm ca formular URL encoded (tip OAuth2)
+                if (!raspuns || raspuns.status === 422) {
+                    try {
+                        const corpFormular = new URLSearchParams();
+                        corpFormular.append('username', email);
+                        corpFormular.append('password', parola);
+                        
+                        raspuns = await fetch(`${API}/inregistrare`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: corpFormular
+                        });
+                    } catch(err) {}
+                }
+
+                date = await raspuns.json();
+                if (raspuns && raspuns.ok) {
                     alert('Cont creat cu succes! Te poți conecta.');
                     document.getElementById('link-schimba-auth').click();
                 } else {
-                    alert(date.detail || 'Eroare la înregistrare. Verifică logurile backend.');
+                    alert(date.detail || 'Eroare la înregistrare. Detalii în consolă.');
+                    console.log('Eroare backend primită:', date);
                 }
             } else {
                 const corpFormular = new URLSearchParams();
