@@ -126,7 +126,6 @@
         const API = ""; 
         let esteInregistrare = false;
 
-        // Schimbarea taburilor (consistentă vizual)
         function switchTab(tabName) {
             const tabSarcini = document.getElementById('tab-sarcini-wrapper');
             const tabDespre = document.getElementById('tab-despre');
@@ -160,30 +159,30 @@
             const parola = document.getElementById('auth-parola').value;
 
             if (esteInregistrare) {
-                // Creăm un formular URL identic cu cel de la autentificare
-                const corpInregistrare = new URLSearchParams();
-                corpInregistrare.append('username', email);
-                corpInregistrare.append('password', parola);
-
-                const raspuns = await fetch(`${API}/inregistrare`, {
+                let raspuns = await fetch(`${API}/inregistrare`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: corpInregistrare
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: email, password: parola })
                 });
-                const date = await raspuns.json();
-                if (raspuns.ok) {
-                    alert('Cont creat cu succes! Te poți conecta.');
-                    document.getElementById('link-schimba-auth').click();
-                } else {
-                    alert(date.detail || 'Eroare la înregistrare');
+
+                if (!raspuns.ok) {
+                    const corpFormular = new URLSearchParams();
+                    corpFormular.append('username', email);
+                    corpFormular.append('password', parola);
+                    
+                    raspuns = await fetch(`${API}/inregistrare`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: corpFormular
+                    });
                 }
-                });
+
                 const date = await raspuns.json();
                 if (raspuns.ok) {
                     alert('Cont creat cu succes! Te poți conecta.');
                     document.getElementById('link-schimba-auth').click();
                 } else {
-                    alert(date.detail || 'Eroare la înregistrare');
+                    alert(date.detail || 'Eroare la înregistrare. Verifică logurile backend.');
                 }
             } else {
                 const corpFormular = new URLSearchParams();
